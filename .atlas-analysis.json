@@ -1,0 +1,56 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "adbcli",
+  "projectDescription": "A command-line tool for querying databases via ADBC",
+  "theme": "aspen",
+  "primaryColor": "#F58025",
+  "lightColor": "#FFA64D",
+  "darkColor": "#D96B1E",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started",
+        "pages": [
+          "introduction",
+          "installation",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "guides/databases",
+          "guides/export-data",
+          "guides/repl"
+        ]
+      },
+      {
+        "group": "Reference",
+        "pages": [
+          "reference/cli-options"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Multi-database support via ADBC drivers",
+    "Interactive SQL REPL with syntax highlighting",
+    "Export results to JSON, CSV, and Arrow IPC formats",
+    "Configurable table display styles",
+    "Multi-line SQL input with validation",
+    "Fast and lightweight Rust implementation"
+  ],
+  "publicApiSurface": [
+    "--driver <name>",
+    "--uri <uri>",
+    "--username <username>",
+    "--password <password>",
+    "--option <key=value>",
+    "--mode <style>",
+    "--query <sql>",
+    "--file <path>",
+    "--output <path>",
+    "--help",
+    "--version"
+  ]
+}
