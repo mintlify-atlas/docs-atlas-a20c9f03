@@ -1,0 +1,560 @@
+---
+title: Interactive REPL
+description: Use adbcli's interactive SQL shell with syntax highlighting, multi-line queries, and command history
+---
+
+The adbcli REPL (Read-Eval-Print Loop) provides an interactive SQL shell for exploring databases and running queries.
+
+## Starting the REPL
+
+Launch the interactive shell by connecting to a database without providing a query:
+
+```bash
+adbcli --driver duckdb
+```
+
+You'll see the SQL prompt:
+
+```
+> 
+```
+
+<Tip>
+The REPL automatically starts when you don't provide `--query`, `--file`, or pipe data through stdin.
+</Tip>
+
+## Basic Usage
+
+### Single-Line Queries
+
+Type a SQL query and press Enter. End queries with a semicolon:
+
+```sql
+> SELECT 42 AS answer;
+┌────────┐
+│ answer │
+├────────┤
+│ 42     │
+└────────┘
+```
+
+### Multi-Line Queries
+
+For complex queries, press Enter without a semicolon to continue on the next line:
+
+```sql
+> SELECT 
+.   species,
+.   COUNT(*) as count
+. FROM penguins
+. GROUP BY species;
+┌───────────┬───────┐
+│ species   │ count │
+├───────────┼───────┤
+│ Adelie    │ 152   │
+│ Gentoo    │ 124   │
+│ Chinstrap │ 68    │
+└───────────┴───────┘
+```
+
+Notice the `.` continuation prompt for multi-line input.
+
+<Note>
+Queries are executed when you type a semicolon (`;`) at the end of a line. Without a semicolon, pressing Enter continues to the next line.
+</Note>
+
+## Features
+
+### Syntax Highlighting
+
+The REPL includes real-time SQL syntax highlighting powered by Syntect, making queries easier to read and write:
+
+- **Keywords** are highlighted (SELECT, FROM, WHERE, etc.)
+- **Strings** are displayed in distinct colors
+- **Numbers** and **operators** are visually distinguished
+
+### Query Validation
+
+The REPL validates query completeness:
+
+- Complete queries (ending with `;`) execute immediately
+- Incomplete queries wait for additional input
+- Empty lines are ignored
+
+### Command History
+
+Navigate through previously executed queries:
+
+<Steps>
+  <Step title="Navigate History">
+    Use **Up Arrow** (↑) and **Down Arrow** (↓) to browse command history
+  </Step>
+  <Step title="Search History">
+    Press **Ctrl+R** to search through previous commands
+  </Step>
+  <Step title="Edit Previous">
+    Recall a command and edit before re-executing
+  </Step>
+</Steps>
+
+### History Search
+
+Press **Ctrl+R** to enter search mode:
+
+```
+(search: SELECT) SELECT * FROM users WHERE active = true;
+```
+
+Type to filter history entries, then press Enter to execute or Esc to edit.
+
+## Table Display Modes
+
+Customize how results are displayed with the `--mode` flag:
+
+```bash
+adbcli --driver duckdb --mode ascii-markdown
+```
+
+### Available Modes
+
+<Tabs>
+  <Tab title="UTF-8 Modes">
+    **utf8-compact** (default)
+    ```
+    ┌──────┬───────┐
+    │ id   │ name  │
+    ├──────┼───────┤
+    │ 1    │ Alice │
+    └──────┴───────┘
+    ```
+
+    **utf8-full**
+    ```
+    ┌──────┬───────┐
+    │ id   │ name  │
+    ├──────┼───────┤
+    │ 1    │ Alice │
+    ├──────┼───────┤
+    │ 2    │ Bob   │
+    └──────┴───────┘
+    ```
+
+    **utf8-borders-only**
+    ```
+    ┌──────┬───────┐
+    │ id    name   │
+    │ 1     Alice  │
+    └──────┴───────┘
+    ```
+
+    **utf8-no-borders**
+    ```
+     id    name
+     1     Alice
+     2     Bob
+    ```
+  </Tab>
+
+  <Tab title="ASCII Modes">
+    **ascii-full**
+    ```
+    +------+-------+
+    | id   | name  |
+    +------+-------+
+    | 1    | Alice |
+    +------+-------+
+    | 2    | Bob   |
+    +------+-------+
+    ```
+
+    **ascii-markdown**
+    ```
+    | id   | name  |
+    |------|-------|
+    | 1    | Alice |
+    | 2    | Bob   |
+    ```
+
+    **ascii-borders-only**
+    ```
+    +------+-------+
+    | id    name   |
+    | 1     Alice  |
+    +------+-------+
+    ```
+
+    **ascii-no-borders**
+    ```
+     id    name
+     1     Alice
+     2     Bob
+    ```
+  </Tab>
+
+  <Tab title="Other Modes">
+    **nothing**
+    ```
+    id    name
+    1     Alice
+    2     Bob
+    ```
+
+    Displays data with no borders or decorations.
+  </Tab>
+</Tabs>
+
+<AccordionGroup>
+  <Accordion title="All Table Modes" icon="table">
+    - `utf8-compact` (default) - Clean UTF-8 borders
+    - `utf8-full` - UTF-8 with row separators
+    - `utf8-full-condensed` - Compact UTF-8 with row separators
+    - `utf8-borders-only` - UTF-8 outer borders only
+    - `utf8-horizontal-only` - UTF-8 horizontal lines only
+    - `utf8-no-borders` - UTF-8 without borders
+    - `ascii-full` - ASCII with full borders
+    - `ascii-full-condensed` - Compact ASCII with full borders
+    - `ascii-borders-only` - ASCII outer borders only
+    - `ascii-borders-only-condensed` - Compact ASCII borders only
+    - `ascii-horizontal-only` - ASCII horizontal lines only
+    - `ascii-markdown` - Markdown-style table
+    - `ascii-no-borders` - ASCII without borders
+    - `nothing` - No formatting
+  </Accordion>
+</AccordionGroup>
+
+### Dynamic Column Width
+
+The REPL uses dynamic content arrangement, automatically adjusting column widths based on data:
+
+```sql
+> SELECT id, name, email FROM users LIMIT 2;
+┌────┬───────┬──────────────────────┐
+│ id │ name  │ email                │
+├────┼───────┼──────────────────────┤
+│ 1  │ Alice │ alice@example.com    │
+│ 2  │ Bob   │ bob@organization.org │
+└────┴───────┴──────────────────────┘
+```
+
+## Keyboard Shortcuts
+
+<CardGroup cols={2}>
+  <Card title="Execute Query" icon="play">
+    **Enter** - Execute when query ends with `;`
+    
+    **Shift+Enter** - Continue to next line
+  </Card>
+
+  <Card title="Navigation" icon="arrows-up-down">
+    **↑/↓** - Browse command history
+    
+    **←/→** - Move cursor within line
+    
+    **Home/End** - Jump to line start/end
+  </Card>
+
+  <Card title="Search" icon="magnifying-glass">
+    **Ctrl+R** - Search command history
+    
+    Type to filter, Enter to execute
+  </Card>
+
+  <Card title="Exit" icon="right-from-bracket">
+    **Ctrl+D** - Exit gracefully
+    
+    **Ctrl+C** - Cancel input (press twice to exit)
+  </Card>
+</CardGroup>
+
+## Exiting the REPL
+
+<Tabs>
+  <Tab title="Ctrl+D">
+    Press **Ctrl+D** to exit cleanly:
+
+    ```sql
+    > SELECT * FROM data;
+    [results displayed]
+    > ^D
+    $
+    ```
+
+    This is the recommended way to exit.
+  </Tab>
+
+  <Tab title="Ctrl+C">
+    Press **Ctrl+C** once to cancel the current input:
+
+    ```sql
+    > SELECT * FROM 
+    . ^C
+    > 
+    ```
+
+    Press **Ctrl+C** twice quickly to exit the REPL:
+
+    ```sql
+    > ^C^C
+    $
+    ```
+  </Tab>
+</Tabs>
+
+## Example Session
+
+Here's a complete example session working with data:
+
+<Steps>
+  <Step title="Start REPL">
+    ```bash
+    adbcli --driver duckdb
+    ```
+  </Step>
+
+  <Step title="Load Data">
+    ```sql
+    > CREATE TABLE penguins AS 
+    . FROM 'https://blobs.duckdb.org/data/penguins.csv';
+    ┌───────┐
+    │ Count │
+    ├───────┤
+    │ 344   │
+    └───────┘
+    ```
+  </Step>
+
+  <Step title="Explore Data">
+    ```sql
+    > SELECT DISTINCT species FROM penguins;
+    ┌───────────┐
+    │ species   │
+    ├───────────┤
+    │ Adelie    │
+    │ Gentoo    │
+    │ Chinstrap │
+    └───────────┘
+    ```
+  </Step>
+
+  <Step title="Aggregate Analysis">
+    ```sql
+    > SELECT 
+    .   species,
+    .   AVG(body_mass_g) as avg_mass,
+    .   COUNT(*) as count
+    . FROM penguins
+    . WHERE body_mass_g IS NOT NULL
+    . GROUP BY species
+    . ORDER BY avg_mass DESC;
+    ┌───────────┬──────────────────┬───────┐
+    │ species   │ avg_mass         │ count │
+    ├───────────┼──────────────────┼───────┤
+    │ Gentoo    │ 5076.016260162602│ 123   │
+    │ Chinstrap │ 3733.088235294118│ 68    │
+    │ Adelie    │ 3700.662251655629│ 151   │
+    └───────────┴──────────────────┴───────┘
+    ```
+  </Step>
+
+  <Step title="Exit">
+    ```sql
+    > ^D
+    $
+    ```
+  </Step>
+</Steps>
+
+## Error Handling
+
+The REPL displays errors and continues running:
+
+```sql
+> SELECT * FROM nonexistent_table;
+Catalog Error: Table with name nonexistent_table does not exist!
+> 
+```
+
+You can immediately try another query without restarting.
+
+<Warning>
+**SQL errors don't exit the REPL**
+
+Syntax errors, missing tables, or constraint violations display an error message but keep the REPL active. This lets you correct mistakes and continue working.
+</Warning>
+
+## Working with Different Databases
+
+<CodeGroup>
+```bash PostgreSQL
+adbcli --driver postgresql \
+  --uri postgresql://postgres:password@localhost:5432/mydb
+```
+
+```bash MySQL
+adbcli --driver mysql \
+  --uri 'root:password@tcp(localhost:3306)/mydb'
+```
+
+```bash Snowflake
+adbcli --driver snowflake \
+  --uri snowflake://user:pwd@account/DB/SCHEMA?warehouse=WH
+```
+
+```bash BigQuery
+adbcli --driver bigquery \
+  --option adbc.bigquery.sql.project_id=my-project \
+  --option adbc.bigquery.sql.dataset_id=analytics
+```
+</CodeGroup>
+
+All REPL features work consistently across different database drivers.
+
+## Tips & Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Multi-line Queries" icon="code">
+    Use multi-line mode for complex queries:
+    
+    ```sql
+    > SELECT 
+    .   col1, 
+    .   col2
+    . FROM table
+    . WHERE condition;
+    ```
+    
+    Easier to read and edit than single long lines.
+  </Card>
+
+  <Card title="Limit Results" icon="filter">
+    Always use `LIMIT` when exploring large tables:
+    
+    ```sql
+    > SELECT * FROM big_table LIMIT 10;
+    ```
+    
+    Prevents overwhelming terminal output.
+  </Card>
+
+  <Card title="History Search" icon="clock-rotate-left">
+    Use **Ctrl+R** to find previous queries:
+    
+    ```
+    (search: SELECT)
+    ```
+    
+    Faster than scrolling through history.
+  </Card>
+
+  <Card title="Table Modes" icon="table-cells">
+    Choose appropriate mode for your terminal:
+    
+    - `utf8-compact` for modern terminals
+    - `ascii-markdown` for copy-paste to docs
+    - `nothing` for minimal output
+  </Card>
+</CardGroup>
+
+<Tip>
+**Pro tip**: Use the `--mode ascii-markdown` flag to generate tables that can be directly pasted into markdown documentation.
+</Tip>
+
+## Advanced Configuration
+
+### Custom Display Mode
+
+```bash
+# Use markdown-style tables
+adbcli --driver duckdb --mode ascii-markdown
+
+# Minimal output
+adbcli --driver duckdb --mode nothing
+
+# Full ASCII borders
+adbcli --driver duckdb --mode ascii-full
+```
+
+### Connecting with Options
+
+```bash
+# DuckDB with custom settings
+adbcli --driver duckdb \
+  --option path=analytics.db \
+  --option threads=8 \
+  --option memory_limit='8GB'
+
+# PostgreSQL with specific database
+adbcli --driver postgresql \
+  --uri postgresql://localhost/production \
+  --username analyst \
+  --password $(cat ~/.db_password)
+```
+
+## Limitations
+
+<Warning>
+**The `--output` flag is not available in interactive mode.**
+
+To export query results to a file, use the `--query` flag instead:
+
+```bash
+# ❌ Not supported
+adbcli --driver duckdb --output results.json
+
+# ✅ Use non-interactive mode
+adbcli --driver duckdb \
+  --query "SELECT * FROM data" \
+  --output results.json
+```
+</Warning>
+
+Other considerations:
+
+- The REPL prints results to stdout only
+- Very large result sets may overflow the terminal
+- Binary data displays as escaped strings
+- Schema information is not shown (use `DESCRIBE` or similar SQL commands)
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Query not executing" icon="circle-question">
+    Ensure your query ends with a semicolon (`;`):
+    
+    ```sql
+    > SELECT * FROM users;  ← Semicolon required
+    ```
+    
+    Without the semicolon, press Enter to continue on the next line.
+  </Accordion>
+
+  <Accordion title="Cannot exit with Ctrl+C" icon="door-open">
+    Press **Ctrl+C** twice in quick succession, or use **Ctrl+D** to exit immediately:
+    
+    ```
+    > ^C^C
+    ```
+    
+    The first Ctrl+C cancels input; the second exits the REPL.
+  </Accordion>
+
+  <Accordion title="Garbled output" icon="text-slash">
+    Your terminal may not support UTF-8 characters. Try ASCII mode:
+    
+    ```bash
+    adbcli --driver duckdb --mode ascii-full
+    ```
+  </Accordion>
+
+  <Accordion title="Connection errors" icon="plug">
+    Verify database connection before entering REPL:
+    
+    ```bash
+    # Test with a simple query first
+    adbcli --driver duckdb --query "SELECT 1"
+    
+    # Then start REPL
+    adbcli --driver duckdb
+    ```
+  </Accordion>
+</AccordionGroup>

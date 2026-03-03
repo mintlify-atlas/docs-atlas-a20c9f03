@@ -1,0 +1,254 @@
+---
+title: CLI Options
+description: Complete reference for all adbcli command-line flags and options
+---
+
+# CLI Options
+
+Complete reference for all command-line flags and options available in adbcli.
+
+## Connection Options
+
+<ParamField path="driver" type="string" required>
+  Driver name for the ADBC driver to use.
+
+  This is the only required option. The driver must be installed and accessible in your system's library path.
+
+  ```sh
+  adbcli --driver duckdb
+  adbcli --driver flightsql
+  adbcli --driver mysql
+  ```
+</ParamField>
+
+<ParamField path="uri" type="string">
+  Database uniform resource identifier.
+
+  The format depends on the specific driver being used. Consult your ADBC driver's documentation for the correct URI format.
+
+  ```sh
+  # MySQL
+  adbcli --driver mysql --uri root@tcp(localhost:33577)/test
+
+  # FlightSQL
+  adbcli --driver flightsql --uri grpc://localhost:9408
+
+  # PostgreSQL
+  adbcli --driver postgresql --uri postgresql://localhost:5432/mydb
+  ```
+</ParamField>
+
+<ParamField path="username" type="string">
+  Database user username for authentication.
+
+  ```sh
+  adbcli --driver flightsql --uri grpc://localhost:9408 --username root
+  ```
+</ParamField>
+
+<ParamField path="password" type="string">
+  Database user password for authentication.
+
+  ```sh
+  adbcli --driver flightsql \
+    --uri grpc://localhost:9408 \
+    --username root \
+    --password my_pwd
+  ```
+</ParamField>
+
+<ParamField path="option" type="string">
+  Driver-specific database option in `key=value` format.
+
+  This flag can be specified multiple times to pass multiple options to the driver. The available options depend on the specific ADBC driver being used.
+
+  The option value is parsed as `key=value`, where the key cannot be empty. Values can contain `=` characters.
+
+  ```sh
+  # DuckDB with persistent database file
+  adbcli --driver duckdb --option path=file.db
+
+  # Multiple options
+  adbcli --driver duckdb \
+    --option path=file.db \
+    --option access_mode=read_only
+  ```
+</ParamField>
+
+## Query Input Options
+
+<ParamField path="query" type="string">
+  Execute a SQL query and exit immediately.
+
+  This option is mutually exclusive with `--file`. When used, adbcli runs in non-interactive mode.
+
+  ```sh
+  adbcli --driver duckdb --query "SELECT 42 AS the_answer"
+  ```
+</ParamField>
+
+<ParamField path="file" type="string">
+  Read and execute SQL from a file, then exit.
+
+  This option is mutually exclusive with `--query`. When used, adbcli runs in non-interactive mode.
+
+  ```sh
+  adbcli --driver duckdb --file select_example.sql
+  adbcli --driver duckdb --file /path/to/queries/analytics.sql
+  ```
+</ParamField>
+
+<Note>
+  If neither `--query` nor `--file` is specified, adbcli checks for input from stdin. If stdin is piped (non-terminal), it reads and executes the SQL from stdin. Otherwise, it starts in interactive mode.
+</Note>
+
+## Output Options
+
+<ParamField path="mode" type="string" default="utf8-compact">
+  Table display style for query results.
+
+  Controls how query results are formatted when printed to the terminal. Available modes:
+
+  | Mode | Description |
+  |------|-------------|
+  | `utf8-compact` | Compact UTF-8 table style (default) |
+  | `ascii-full` | ASCII table with all borders |
+  | `ascii-full-condensed` | ASCII table without row dividers |
+  | `ascii-borders-only` | ASCII table with outer borders only |
+  | `ascii-borders-only-condensed` | ASCII outer borders without row spacing |
+  | `ascii-horizontal-only` | ASCII with horizontal lines only |
+  | `ascii-markdown` | Markdown-compatible table format |
+  | `ascii-no-borders` | ASCII table without any borders |
+  | `utf8-full` | UTF-8 box drawing with all borders |
+  | `utf8-full-condensed` | UTF-8 box drawing without row dividers |
+  | `utf8-borders-only` | UTF-8 with outer borders only |
+  | `utf8-horizontal-only` | UTF-8 with horizontal lines only |
+  | `utf8-no-borders` | UTF-8 table without any borders |
+  | `nothing` | No borders or lines |
+
+  ```sh
+  adbcli --driver duckdb --mode ascii-markdown
+  adbcli --driver duckdb --mode utf8-full
+  ```
+</ParamField>
+
+<ParamField path="output" type="string">
+  Write query result to a file instead of displaying it.
+
+  Cannot be used in interactive mode. The output format is automatically determined by the file extension:
+
+  | Extension | Format |
+  |-----------|--------|
+  | `.json` | JSON |
+  | `.csv` | CSV |
+  | `.arrow`, `.ipc` | Arrow IPC |
+
+  ```sh
+  adbcli --driver duckdb \
+    --query "SELECT 42 AS the_answer" \
+    --output result.json
+
+  adbcli --driver duckdb \
+    --query "SELECT * FROM penguins" \
+    --output penguins.csv
+
+  adbcli --driver duckdb \
+    --file analytics.sql \
+    --output results.arrow
+  ```
+</ParamField>
+
+## General Options
+
+<ParamField path="help" type="flag">
+  Print help message showing all available options.
+
+  ```sh
+  adbcli --help
+  ```
+</ParamField>
+
+<ParamField path="version" type="flag">
+  Print the version of adbcli.
+
+  ```sh
+  adbcli --version
+  ```
+</ParamField>
+
+## Usage Examples
+
+### Interactive Mode
+
+Start an interactive SQL shell:
+
+```sh
+adbcli --driver duckdb
+```
+
+Connect with authentication:
+
+```sh
+adbcli --driver flightsql \
+  --uri grpc://localhost:9408 \
+  --username admin \
+  --password secret
+```
+
+### Non-Interactive Mode
+
+Execute a single query:
+
+```sh
+adbcli --driver duckdb --query "SELECT 42 AS answer"
+```
+
+Execute from stdin:
+
+```sh
+echo "SELECT 1 + 1" | adbcli --driver duckdb
+```
+
+Execute from file:
+
+```sh
+adbcli --driver duckdb --file queries.sql
+```
+
+### Export Results
+
+Export to JSON:
+
+```sh
+adbcli --driver duckdb \
+  --query "SELECT * FROM table" \
+  --output results.json
+```
+
+Export to CSV with custom table mode:
+
+```sh
+adbcli --driver duckdb \
+  --file analytics.sql \
+  --output report.csv \
+  --mode ascii-markdown
+```
+
+### Driver-Specific Options
+
+DuckDB with persistent database:
+
+```sh
+adbcli --driver duckdb \
+  --option path=/path/to/database.db \
+  --option access_mode=read_only
+```
+
+MySQL connection:
+
+```sh
+adbcli --driver mysql \
+  --uri root@tcp(localhost:3306)/mydb \
+  --username root \
+  --password password123
+```

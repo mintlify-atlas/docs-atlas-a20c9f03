@@ -1,0 +1,350 @@
+---
+title: Database Connections
+description: Learn how to connect adbcli to different database systems using ADBC drivers
+---
+
+adbcli can connect to any database with a compatible ADBC driver. This guide covers connection patterns for popular databases.
+
+## Connection Basics
+
+All database connections use the same basic pattern:
+
+```bash
+adbcli --driver <driver_name> [OPTIONS]
+```
+
+<Note>
+Before connecting to a database, install the appropriate ADBC driver using [dbc](https://docs.columnar.tech/dbc/).
+</Note>
+
+## Connection Options
+
+adbcli supports several connection parameters:
+
+<AccordionGroup>
+  <Accordion title="--driver" icon="puzzle-piece">
+    **Required.** The name of the ADBC driver to use.
+    
+    ```bash
+    --driver duckdb
+    ```
+  </Accordion>
+
+  <Accordion title="--uri" icon="link">
+    Database connection URI. Format varies by driver.
+    
+    ```bash
+    --uri postgresql://user:pass@host:5432/database
+    ```
+  </Accordion>
+
+  <Accordion title="--username" icon="user">
+    Database username for authentication.
+    
+    ```bash
+    --username admin
+    ```
+  </Accordion>
+
+  <Accordion title="--password" icon="lock">
+    Database password for authentication.
+    
+    ```bash
+    --password secret123
+    ```
+  </Accordion>
+
+  <Accordion title="--option" icon="gear">
+    Driver-specific options in `key=value` format. Can be specified multiple times.
+    
+    ```bash
+    --option path=data.db --option read_only=true
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Popular Databases
+
+<Tabs>
+  <Tab title="DuckDB">
+    DuckDB is a fast in-process analytical database.
+
+    ### Installation
+
+    ```bash
+    dbc install duckdb
+    ```
+
+    ### In-Memory
+
+    ```bash
+    adbcli --driver duckdb
+    ```
+
+    ### Persistent Database
+
+    ```bash
+    adbcli --driver duckdb --option path=data.db
+    ```
+
+    ### MotherDuck
+
+    Connect to MotherDuck cloud service:
+
+    ```bash
+    adbcli --driver duckdb --option path=md:sample_data
+    ```
+  </Tab>
+
+  <Tab title="PostgreSQL">
+    PostgreSQL and PostgreSQL-compatible databases.
+
+    ### Installation
+
+    ```bash
+    dbc install postgresql
+    ```
+
+    ### Standard Connection
+
+    ```bash
+    adbcli --driver postgresql --uri postgresql://postgres:password@localhost:5432/postgres
+    ```
+
+    ### Compatible Databases
+
+    The PostgreSQL driver also works with:
+
+    **Neon**
+    ```bash
+    adbcli --driver postgresql --uri postgresql://cloud_admin:cloud_admin@localhost:55433/postgres
+    ```
+
+    **TimescaleDB**
+    ```bash
+    adbcli --driver postgresql --uri postgresql://postgres:password@localhost:5432/postgres
+    ```
+
+    **YugabyteDB**
+    ```bash
+    adbcli --driver postgresql --uri postgresql://yugabyte@localhost:5433/yugabyte
+    ```
+
+    **Yellowbrick**
+    ```bash
+    adbcli --driver postgresql --uri postgresql://ybdadmin:ybdadmin@localhost:5432/yellowbrick
+    ```
+  </Tab>
+
+  <Tab title="MySQL">
+    MySQL and MySQL-compatible databases.
+
+    ### Installation
+
+    ```bash
+    dbc install mysql
+    ```
+
+    ### Standard Connection
+
+    ```bash
+    adbcli --driver mysql --uri 'root:my-secret-pw@tcp(localhost:3306)/sys'
+    ```
+
+    ### Compatible Databases
+
+    The MySQL driver also works with:
+
+    **MariaDB**
+    ```bash
+    adbcli --driver mysql --uri 'root:my-secret-pw@tcp(localhost:3306)/sys'
+    ```
+
+    **SingleStore**
+    ```bash
+    adbcli --driver mysql --uri 'root:YOUR_ROOT_PASSWORD@tcp(localhost:3306)/memsql'
+    ```
+
+    **TiDB**
+    ```bash
+    adbcli --driver mysql --uri 'root@tcp(localhost:4000)/test'
+    ```
+
+    **Vitess**
+    ```bash
+    adbcli --driver mysql --uri 'root@tcp(localhost:33577)/test'
+    ```
+
+    **OceanBase**
+    ```bash
+    adbcli --driver mysql --uri 'root@tcp(localhost:2881)/oceanbase'
+    ```
+  </Tab>
+
+  <Tab title="SQLite">
+    SQLite is a lightweight file-based database.
+
+    ### Installation
+
+    ```bash
+    dbc install sqlite
+    ```
+
+    ### In-Memory
+
+    ```bash
+    adbcli --driver sqlite
+    ```
+
+    ### Persistent Database
+
+    ```bash
+    adbcli --driver sqlite --uri data.db
+    ```
+  </Tab>
+</Tabs>
+
+## Cloud Data Warehouses
+
+<CardGroup cols={2}>
+  <Card title="BigQuery" icon="google">
+    ```bash
+    dbc install bigquery
+    adbcli --driver bigquery \
+      --option adbc.bigquery.sql.project_id=my-gcp-project \
+      --option adbc.bigquery.sql.dataset_id=bigquery-public-data
+    ```
+  </Card>
+
+  <Card title="Snowflake" icon="snowflake">
+    ```bash
+    dbc install snowflake
+    adbcli --driver snowflake \
+      --uri snowflake://user:pwd@myorg-account1/ANALYTICS_DB/SALES_DATA?warehouse=WH_XL&role=ANALYST
+    ```
+  </Card>
+
+  <Card title="Databricks" icon="database">
+    ```bash
+    dbc install databricks
+    adbcli --driver databricks \
+      --uri databricks://token:<personal-access-token>@<server-hostname>:<port-number>/<http-path>
+    ```
+  </Card>
+
+  <Card title="Amazon Redshift" icon="aws">
+    ```bash
+    dbc install redshift
+    adbcli --driver redshift \
+      --uri postgresql://localhost:5439 \
+      --option redshift.cluster_type=redshift-serverless \
+      --option redshift.workgroup_name=<WORKGROUP_NAME> \
+      --option redshift.db_name=sample_data_dev
+    ```
+  </Card>
+</CardGroup>
+
+## Arrow Flight SQL
+
+Many databases support the Arrow Flight SQL protocol:
+
+```bash
+dbc install flightsql
+```
+
+<Tabs>
+  <Tab title="Dremio">
+    ```bash
+    adbcli --driver flightsql \
+      --uri grpc+tcp://localhost:32010 \
+      --username admin \
+      --password password1
+    ```
+  </Tab>
+
+  <Tab title="Apache Doris">
+    ```bash
+    adbcli --driver flightsql \
+      --uri grpc://localhost:8070 \
+      --username root
+    ```
+  </Tab>
+
+  <Tab title="StarRocks">
+    ```bash
+    adbcli --driver flightsql \
+      --uri grpc://localhost:9408 \
+      --username root
+    ```
+  </Tab>
+</Tabs>
+
+## Additional Databases
+
+<AccordionGroup>
+  <Accordion title="Microsoft SQL Server">
+    ```bash
+    dbc install mssql
+    adbcli --driver mssql \
+      --uri sqlserver://sa:pwd@localhost:1433?database=demo
+    ```
+  </Accordion>
+
+  <Accordion title="Oracle Database">
+    ```bash
+    dbc install oracle
+    adbcli --driver oracle \
+      --uri oracle://system:password@localhost:1521/FREEPDB1
+    ```
+  </Accordion>
+
+  <Accordion title="Teradata">
+    ```bash
+    dbc install teradata
+    adbcli --driver teradata \
+      --uri teradata://YOUR_USERNAME:YOUR_PASSWORD@YOUR_HOST:1025
+    ```
+  </Accordion>
+
+  <Accordion title="Trino">
+    ```bash
+    dbc install trino
+    adbcli --driver trino \
+      --uri http://user@localhost:8080?catalog=tcph&schema=tiny
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<Warning>
+If you encounter connection errors, verify:
+- The ADBC driver is installed with `dbc list`
+- The database is running and accessible
+- Connection credentials are correct
+- Required driver-specific options are provided
+</Warning>
+
+### Option Format
+
+Driver options must follow the `key=value` format:
+
+```bash
+# ✅ Correct
+--option path=data.db
+
+# ❌ Incorrect (missing equals sign)
+--option path data.db
+
+# ❌ Incorrect (empty key)
+--option =value
+```
+
+Multiple options can be specified:
+
+```bash
+adbcli --driver duckdb \
+  --option path=data.db \
+  --option read_only=true \
+  --option threads=4
+```

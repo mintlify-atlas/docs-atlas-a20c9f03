@@ -1,0 +1,126 @@
+---
+title: Installation
+description: Install adbcli and set up ADBC drivers for your databases
+---
+
+## Install adbcli
+
+<Tabs>
+  <Tab title="From crates.io">
+    Install the latest release from [crates.io](https://crates.io/crates/adbcli):
+
+    ```bash
+    cargo install adbcli --version 0.1.0-alpha
+    ```
+
+    <Note>
+      This requires Rust 1.75 or later. Install Rust from [rustup.rs](https://rustup.rs/) if you haven't already.
+    </Note>
+  </Tab>
+  
+  <Tab title="From Source">
+    Clone and install from the GitHub repository:
+
+    ```bash
+    git clone https://github.com/columnar-tech/adbcli.git
+    cargo install --path adbcli
+    ```
+
+    This builds the latest version from the `main` branch.
+  </Tab>
+</Tabs>
+
+## Verify Installation
+
+Confirm adbcli is installed correctly:
+
+```bash
+adbcli --version
+```
+
+You should see output like:
+
+```
+adbcli 0.1.0-alpha
+```
+
+## Install ADBC Drivers
+
+To query databases, you need to install ADBC drivers. The recommended way is using [dbc](https://docs.columnar.tech/dbc/), a package manager for ADBC drivers.
+
+### Install dbc
+
+Follow the [dbc installation guide](https://docs.columnar.tech/dbc/installation/) to install the driver manager.
+
+### Install Database Drivers
+
+<Tabs>
+  <Tab title="DuckDB">
+    Install the DuckDB ADBC driver:
+
+    ```bash
+    dbc install duckdb
+    ```
+
+    DuckDB is an in-process analytical database, perfect for getting started with adbcli.
+  </Tab>
+  
+  <Tab title="PostgreSQL">
+    Install the PostgreSQL ADBC driver:
+
+    ```bash
+    dbc install postgresql
+    ```
+
+    Use this to connect to PostgreSQL databases.
+  </Tab>
+  
+  <Tab title="SQLite">
+    Install the SQLite ADBC driver:
+
+    ```bash
+    dbc install sqlite
+    ```
+
+    SQLite is a lightweight file-based database.
+  </Tab>
+</Tabs>
+
+## Command-Line Options
+
+View all available options:
+
+```bash
+adbcli --help
+```
+
+<CodeGroup>
+```console Output
+Query databases via ADBC
+
+Usage: adbcli [OPTIONS] --driver <driver>
+
+Options:
+      --driver <driver>      Driver name
+      --uri <uri>            Database uniform resource identifier
+      --username <username>  Database user username
+      --password <password>  Database user password
+      --option <option>      Driver-specific database option
+      --mode <mode>          Table display style [default: utf8-compact]
+      --query <query>        Execute query and exit
+      --file <file>          Read and execute file and exit
+      --output <file>        Write result to file
+  -h, --help                 Print help
+  -V, --version              Print version
+```
+</CodeGroup>
+
+## Next Steps
+
+<Card
+  title="Quick Start Guide"
+  icon="rocket"
+  href="/quickstart"
+>
+  Learn how to run your first query with adbcli
+</Card>

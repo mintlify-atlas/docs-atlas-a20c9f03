@@ -1,80 +1,262 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start
+description: Get up and running with adbcli in minutes - from installation to your first query
 ---
 
-## Get started in three steps
+## Prerequisites
 
-Get your documentation site running locally and make your first customization.
+Before starting, ensure you have:
 
-### Step 1: Set up your local environment
+<Steps>
+  <Step title="Install adbcli">
+    Follow the [installation guide](/installation) to install adbcli via cargo.
+  </Step>
+  
+  <Step title="Install an ADBC driver">
+    Install at least one ADBC driver. For this guide, we'll use DuckDB:
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    ```bash
+    dbc install duckdb
+    ```
+  </Step>
+</Steps>
 
-### Step 2: Deploy your changes
+## Interactive Mode
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+The interactive mode provides a SQL shell with syntax highlighting, command history, and multiline input support.
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+### Start the Shell
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+Connect to DuckDB in-memory:
 
-### Step 3: Go live
+```bash
+adbcli --driver duckdb
+```
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+You'll see a prompt:
 
-## Next steps
+```
+>
+```
 
-Now that you have your docs running, explore these key features:
+### Execute Your First Query
 
-<CardGroup cols={2}>
+Let's create a table from a remote CSV file:
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+```sql
+CREATE TABLE penguins AS FROM 'https://blobs.duckdb.org/data/penguins.csv';
+```
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+<CodeGroup>
+```sql Input
+CREATE TABLE penguins AS FROM 'https://blobs.duckdb.org/data/penguins.csv';
+```
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
+```text Output
+┌───────┐
+│ Count │
+├───────┤
+│ 344   │
+└───────┘
+```
+</CodeGroup>
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
+### Query the Data
 
-</CardGroup>
+Now let's query the table. adbcli supports multiline input - just continue typing on new lines:
+
+```sql
+SELECT *
+FROM penguins
+LIMIT 5;
+```
+
+<CodeGroup>
+```sql Input
+SELECT *
+FROM penguins
+LIMIT 5;
+```
+
+```text Output
+┌─────────┬───────────┬────────────────┬───────────────┬───────────────────┬─────────────┬────────┬──────┐
+│ species │ island    │ bill_length_mm │ bill_depth_mm │ flipper_length_mm │ body_mass_g │ sex    │ year │
+├─────────┼───────────┼────────────────┼───────────────┼───────────────────┼─────────────┼────────┼──────┤
+│ Adelie  │ Torgersen │ 39.1           │ 18.7          │ 181               │ 3750        │ male   │ 2007 │
+│ Adelie  │ Torgersen │ 39.5           │ 17.4          │ 186               │ 3800        │ female │ 2007 │
+│ Adelie  │ Torgersen │ 40.3           │ 18            │ 195               │ 3250        │ female │ 2007 │
+│ Adelie  │ Torgersen │ NA             │ NA            │ NA                │ NA          │ NA     │ 2007 │
+│ Adelie  │ Torgersen │ 36.7           │ 19.3          │ 193               │ 3450        │ female │ 2007 │
+└─────────┴───────────┴────────────────┴───────────────┴───────────────────┴─────────────┴────────┴──────┘
+```
+</CodeGroup>
+
+### Exit the Shell
+
+Press `Ctrl+C` twice to exit the interactive shell.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  A single `Ctrl+C` will cancel the current input. Press it again to exit.
 </Note>
+
+## Non-Interactive Mode
+
+adbcli also supports non-interactive usage for scripting and automation.
+
+### Execute a Direct Query
+
+Run a query and immediately exit:
+
+```bash
+adbcli --driver duckdb --query "SELECT 42 AS the_answer"
+```
+
+### Execute from a File
+
+Create a SQL file:
+
+```sql select_example.sql
+SELECT
+  species,
+  COUNT(*) AS count,
+  AVG(body_mass_g) AS avg_mass
+FROM 'https://blobs.duckdb.org/data/penguins.csv'
+GROUP BY species
+ORDER BY avg_mass DESC;
+```
+
+Execute it:
+
+```bash
+adbcli --driver duckdb --file select_example.sql
+```
+
+### Execute from stdin
+
+Pipe a query from stdin:
+
+```bash
+echo "SELECT 42 AS the_answer" | adbcli --driver duckdb
+```
+
+## Export Results
+
+adbcli can export query results to various file formats.
+
+<Tabs>
+  <Tab title="JSON">
+    Export to JSON format:
+
+    ```bash
+    adbcli --driver duckdb \
+      --query "SELECT 42 AS the_answer" \
+      --output result.json
+    ```
+
+    The file will contain Arrow JSON format data.
+  </Tab>
+  
+  <Tab title="CSV">
+    Export to CSV format:
+
+    ```bash
+    adbcli --driver duckdb \
+      --query "SELECT 42 AS the_answer" \
+      --output result.csv
+    ```
+
+    Standard comma-separated values format.
+  </Tab>
+  
+  <Tab title="Arrow IPC">
+    Export to Arrow IPC (feather) format:
+
+    ```bash
+    adbcli --driver duckdb \
+      --query "SELECT 42 AS the_answer" \
+      --output result.arrow
+    ```
+
+    This is the most efficient format for Arrow data.
+  </Tab>
+</Tabs>
+
+<Note>
+  The output format is automatically detected from the file extension. The `--output` flag cannot be used in interactive mode.
+</Note>
+
+## Connect to Other Databases
+
+### DuckDB with a File
+
+Connect to a persistent DuckDB database:
+
+```bash
+adbcli --driver duckdb --uri "mydatabase.db"
+```
+
+### PostgreSQL
+
+Connect to PostgreSQL with connection details:
+
+```bash
+adbcli --driver postgresql \
+  --uri "postgresql://localhost:5432/mydb" \
+  --username myuser \
+  --password mypassword
+```
+
+### Driver-Specific Options
+
+Pass driver-specific options using `--option`:
+
+```bash
+adbcli --driver duckdb \
+  --option "access_mode=read_only" \
+  --option "threads=4"
+```
+
+<Note>
+  Options use the format `key=value`. You can specify multiple `--option` flags.
+</Note>
+
+## Customize Table Display
+
+Change the table display style with `--mode`:
+
+```bash
+adbcli --driver duckdb \
+  --query "SELECT 1, 2, 3" \
+  --mode ascii-markdown
+```
+
+Available modes include `utf8-compact` (default), `ascii-markdown`, and others.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Configuration"
+    icon="gear"
+  >
+    Learn about advanced configuration options and driver-specific settings
+  </Card>
+  <Card
+    title="Supported Databases"
+    icon="database"
+  >
+    Explore all supported databases and their connection parameters
+  </Card>
+  <Card
+    title="CLI Reference"
+    icon="terminal"
+  >
+    Complete reference for all command-line options and flags
+  </Card>
+  <Card
+    title="Examples"
+    icon="code"
+  >
+    Browse real-world examples and common use cases
+  </Card>
+</CardGroup>

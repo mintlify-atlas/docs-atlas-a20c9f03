@@ -1,0 +1,105 @@
+---
+title: adbcli - Query Databases via ADBC
+description: A fast, lightweight command-line tool for querying databases using Apache Arrow Database Connectivity (ADBC)
+---
+
+<img
+  className="block dark:hidden"
+  src="/images/hero-light.svg"
+  alt="adbcli Hero Light"
+/>
+<img
+  className="hidden dark:block"
+  src="/images/hero-dark.svg"
+  alt="adbcli Hero Dark"
+/>
+
+## Overview
+
+**adbcli** is a command-line tool for querying databases via [ADBC (Apache Arrow Database Connectivity)](https://arrow.apache.org/adbc/current/index.html). Built in Rust for high performance and minimal resource usage, adbcli provides both an interactive SQL shell and non-interactive query execution with support for multiple output formats.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card
+    title="Multi-Database Support"
+    icon="database"
+  >
+    Connect to any database with a compatible ADBC driver - DuckDB, PostgreSQL, SQLite, and more
+  </Card>
+  <Card
+    title="Interactive SQL Shell"
+    icon="terminal"
+  >
+    Execute SQL queries with command history, multiline input, and intuitive navigation
+  </Card>
+  <Card
+    title="Syntax Highlighting"
+    icon="highlighter"
+  >
+    SQL queries highlighted for improved readability with automatic terminal theme detection
+  </Card>
+  <Card
+    title="Formatted Output"
+    icon="table"
+  >
+    Results displayed in clean, aligned tables with dynamic column width and configurable styles
+  </Card>
+  <Card
+    title="File Export"
+    icon="file-export"
+  >
+    Export query results to JSON, CSV, or Arrow IPC files for further processing
+  </Card>
+  <Card
+    title="Fast & Lightweight"
+    icon="bolt"
+  >
+    Built in Rust for high performance, minimal resource usage, and zero-cost abstractions
+  </Card>
+</CardGroup>
+
+## Quick Example
+
+```bash
+# Start interactive shell
+adbcli --driver duckdb
+
+# Execute a query directly
+adbcli --driver duckdb --query "SELECT 42 AS the_answer"
+
+# Export results to JSON
+adbcli --driver duckdb --query "SELECT * FROM table" --output result.json
+```
+
+## Get Started
+
+<CardGroup cols={2}>
+  <Card
+    title="Installation"
+    icon="download"
+    href="/installation"
+  >
+    Install adbcli via cargo or from source
+  </Card>
+  <Card
+    title="Quick Start"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Run your first query in minutes
+  </Card>
+</CardGroup>
+
+## Why ADBC?
+
+ADBC (Apache Arrow Database Connectivity) is a database access API that uses Apache Arrow for data transfer. This provides:
+
+- **Zero-copy data transfer** - Data moves between database and application without serialization overhead
+- **Columnar format** - Efficient processing of analytical queries
+- **Standardized interface** - Single API works across multiple databases
+- **High performance** - Optimized for modern hardware and large datasets
+
+## License
+
+This project is licensed under Apache-2.0.

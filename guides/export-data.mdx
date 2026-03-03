@@ -1,0 +1,378 @@
+---
+title: Exporting Query Results
+description: Export query results from adbcli to JSON, CSV, and Arrow IPC file formats
+---
+
+Export query results to files for further analysis, sharing, or integration with other tools.
+
+## Overview
+
+adbcli supports exporting query results to multiple formats:
+
+<CardGroup cols={3}>
+  <Card title="JSON" icon="brackets-curly">
+    Human-readable format for data exchange
+  </Card>
+  <Card title="CSV" icon="file-csv">
+    Comma-separated values for spreadsheets
+  </Card>
+  <Card title="Arrow IPC" icon="arrow-right">
+    High-performance columnar format
+  </Card>
+</CardGroup>
+
+## Basic Usage
+
+Use the `--output` flag to specify the output file. The format is automatically detected from the file extension:
+
+```bash
+adbcli --driver duckdb --query "SELECT * FROM users" --output results.json
+```
+
+<Note>
+The `--output` flag cannot be used in interactive mode. It only works with `--query`, `--file`, or stdin input.
+</Note>
+
+## Supported Formats
+
+### JSON Format
+
+Export results as a JSON array of objects:
+
+```bash
+adbcli --driver duckdb \
+  --query "SELECT id, name, email FROM users LIMIT 5" \
+  --output users.json
+```
+
+<CodeGroup>
+```json Example Output
+[
+  {"id": 1, "name": "Alice", "email": "alice@example.com"},
+  {"id": 2, "name": "Bob", "email": "bob@example.com"},
+  {"id": 3, "name": "Charlie", "email": "charlie@example.com"}
+]
+```
+</CodeGroup>
+
+**Best for:**
+- Web APIs and JSON processing
+- Human-readable data inspection
+- Integration with JavaScript applications
+
+### CSV Format
+
+Export results as comma-separated values with headers:
+
+```bash
+adbcli --driver postgresql \
+  --uri postgresql://localhost/db \
+  --query "SELECT * FROM sales WHERE date > '2024-01-01'" \
+  --output sales.csv
+```
+
+<CodeGroup>
+```csv Example Output
+id,name,email
+1,Alice,alice@example.com
+2,Bob,bob@example.com
+3,Charlie,charlie@example.com
+```
+</CodeGroup>
+
+**Best for:**
+- Excel and spreadsheet applications
+- Data analysis tools (Pandas, R)
+- Simple data transfer
+
+### Arrow IPC Format
+
+Export results in Apache Arrow's columnar format:
+
+```bash
+adbcli --driver duckdb \
+  --query "SELECT * FROM large_dataset" \
+  --output data.arrow
+```
+
+You can also use the `.ipc` extension:
+
+```bash
+adbcli --driver duckdb \
+  --query "SELECT * FROM large_dataset" \
+  --output data.ipc
+```
+
+<Info>
+Arrow IPC is a binary format optimized for performance. Both `.arrow` and `.ipc` extensions are supported and produce identical output.
+</Info>
+
+**Best for:**
+- High-performance data transfer
+- Large datasets
+- Integration with Arrow-compatible tools (Pandas, Polars, DuckDB)
+- Preserving data types precisely
+
+## Export Patterns
+
+<Tabs>
+  <Tab title="Direct Query">
+    Execute a query and export results:
+
+    ```bash
+    adbcli --driver duckdb \
+      --query "SELECT * FROM penguins WHERE species = 'Adelie'" \
+      --output adelie_penguins.csv
+    ```
+  </Tab>
+
+  <Tab title="From File">
+    Execute a SQL file and export results:
+
+    ```bash
+    adbcli --driver postgresql \
+      --uri postgresql://localhost/db \
+      --file analytics_query.sql \
+      --output results.json
+    ```
+  </Tab>
+
+  <Tab title="From Stdin">
+    Pipe SQL from stdin and export results:
+
+    ```bash
+    echo "SELECT COUNT(*) as total FROM orders" | \
+      adbcli --driver mysql \
+        --uri 'root:pass@tcp(localhost:3306)/shop' \
+        --output order_count.json
+    ```
+
+    Or with a heredoc:
+
+    ```bash
+    adbcli --driver duckdb --output result.csv << EOF
+    SELECT 
+      date_trunc('month', order_date) as month,
+      COUNT(*) as orders,
+      SUM(amount) as revenue
+    FROM orders
+    GROUP BY month
+    ORDER BY month;
+    EOF
+    ```
+  </Tab>
+</Tabs>
+
+## Format Detection
+
+The output format is automatically inferred from the file extension:
+
+| Extension | Format | Notes |
+|-----------|--------|-------|
+| `.json` | JSON | Array of objects |
+| `.csv` | CSV | With headers |
+| `.arrow` | Arrow IPC | Columnar binary format |
+| `.ipc` | Arrow IPC | Alias for `.arrow` |
+
+<Warning>
+Files without an extension or with unsupported extensions will result in an error:
+```
+Error: Cannot infer format: no file extension
+```
+or
+```
+Error: Unsupported file extension: '.txt'
+```
+</Warning>
+
+## Advanced Examples
+
+### Export Complex Aggregations
+
+```bash
+adbcli --driver bigquery \
+  --option adbc.bigquery.sql.project_id=my-project \
+  --option adbc.bigquery.sql.dataset_id=analytics \
+  --query "
+SELECT 
+  DATE_TRUNC(timestamp, MONTH) as month,
+  country,
+  COUNT(*) as events,
+  COUNT(DISTINCT user_id) as unique_users
+FROM events
+WHERE timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 90 DAY)
+GROUP BY month, country
+ORDER BY month DESC, events DESC
+" \
+  --output monthly_analytics.json
+```
+
+### Export for Data Pipeline
+
+```bash
+#!/bin/bash
+# Extract data for daily ETL pipeline
+
+DATE=$(date +%Y-%m-%d)
+
+adbcli --driver snowflake \
+  --uri "snowflake://user:pwd@account/DB/SCHEMA?warehouse=WH" \
+  --query "SELECT * FROM daily_metrics WHERE date = '$DATE'" \
+  --output "data/metrics_${DATE}.arrow"
+
+echo "Exported metrics for $DATE"
+```
+
+### Export Multiple Formats
+
+```bash
+# Export the same query to different formats
+QUERY="SELECT * FROM products WHERE active = true"
+
+adbcli --driver mysql --uri 'root@tcp(localhost)/shop' \
+  --query "$QUERY" --output products.csv
+
+adbcli --driver mysql --uri 'root@tcp(localhost)/shop' \
+  --query "$QUERY" --output products.json
+
+adbcli --driver mysql --uri 'root@tcp(localhost)/shop' \
+  --query "$QUERY" --output products.arrow
+```
+
+## Empty Results
+
+<Info>
+When a query returns no rows, adbcli will not create an output file. This prevents creating empty or invalid files.
+</Info>
+
+```bash
+# Query returns no results - no file created
+adbcli --driver duckdb \
+  --query "SELECT * FROM users WHERE id = -1" \
+  --output results.json
+
+# Exit code is still 0 (success)
+echo $?  # 0
+```
+
+## Performance Considerations
+
+<AccordionGroup>
+  <Accordion title="Large Datasets" icon="database">
+    For very large result sets:
+    
+    - **Arrow IPC** is the fastest format for writing and reading
+    - **CSV** is slower but more universally compatible
+    - **JSON** is slowest and uses most disk space
+    
+    Use Arrow IPC for datasets with millions of rows.
+  </Accordion>
+
+  <Accordion title="Batched Processing" icon="layer-group">
+    Results are written in batches internally. All formats handle streaming efficiently:
+    
+    ```bash
+    # Efficiently exports even with millions of rows
+    adbcli --driver duckdb \
+      --query "SELECT * FROM large_table" \
+      --output large_export.arrow
+    ```
+  </Accordion>
+
+  <Accordion title="Type Preservation" icon="shapes">
+    **Arrow IPC** preserves all data types exactly:
+    - Timestamps with timezone information
+    - Nested structures (arrays, structs)
+    - Decimal precision
+    
+    **CSV and JSON** convert everything to text/strings, which may lose precision or type information.
+  </Accordion>
+</AccordionGroup>
+
+## Integration Examples
+
+### Python with Pandas
+
+```python
+import pandas as pd
+import pyarrow.feather as feather
+
+# Read JSON
+df = pd.read_json('results.json')
+
+# Read CSV
+df = pd.read_csv('results.csv')
+
+# Read Arrow IPC (fastest)
+df = feather.read_feather('results.arrow')
+```
+
+### Python with Polars
+
+```python
+import polars as pl
+
+# Read JSON
+df = pl.read_json('results.json')
+
+# Read CSV
+df = pl.read_csv('results.csv')
+
+# Read Arrow IPC
+df = pl.read_ipc('results.arrow')
+```
+
+### DuckDB
+
+```sql
+-- Read CSV
+SELECT * FROM 'results.csv';
+
+-- Read JSON
+SELECT * FROM read_json_auto('results.json');
+
+-- Read Arrow IPC (fastest)
+SELECT * FROM 'results.arrow';
+```
+
+## Troubleshooting
+
+<Warning>
+**Cannot use --output in interactive mode**
+
+This error occurs when trying to use `--output` without providing a query:
+
+```bash
+# ❌ Error
+adbcli --driver duckdb --output results.json
+
+# ✅ Correct
+adbcli --driver duckdb --query "SELECT 1" --output results.json
+```
+</Warning>
+
+### Common Issues
+
+<Accordion title="Unsupported file extension">
+  Only `.json`, `.csv`, `.arrow`, and `.ipc` extensions are supported.
+  
+  ```bash
+  # ❌ Error
+  --output results.txt
+  
+  # ✅ Use supported format
+  --output results.json
+  ```
+</Accordion>
+
+<Accordion title="Permission denied">
+  Ensure you have write permissions to the output directory:
+  
+  ```bash
+  # Check directory permissions
+  ls -la /path/to/output/
+  
+  # Use a directory you have access to
+  --output ~/data/results.json
+  ```
+</Accordion>
