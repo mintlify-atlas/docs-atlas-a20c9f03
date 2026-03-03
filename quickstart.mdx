@@ -192,7 +192,7 @@ adbcli can export query results to various file formats.
 Connect to a persistent DuckDB database:
 
 ```bash
-adbcli --driver duckdb --uri "mydatabase.db"
+adbcli --driver duckdb --option path=mydatabase.db
 ```
 
 ### PostgreSQL
@@ -236,27 +236,31 @@ Available modes include `utf8-compact` (default), `ascii-markdown`, and others.
 
 <CardGroup cols={2}>
   <Card
-    title="Configuration"
-    icon="gear"
-  >
-    Learn about advanced configuration options and driver-specific settings
-  </Card>
-  <Card
     title="Supported Databases"
     icon="database"
+    href="/guides/databases"
   >
     Explore all supported databases and their connection parameters
   </Card>
   <Card
-    title="CLI Reference"
-    icon="terminal"
+    title="Export Data"
+    icon="file-export"
+    href="/guides/export-data"
   >
-    Complete reference for all command-line options and flags
+    Learn how to export query results to JSON, CSV, and Arrow formats
   </Card>
   <Card
-    title="Examples"
-    icon="code"
+    title="Interactive REPL"
+    icon="terminal"
+    href="/guides/repl"
   >
-    Browse real-world examples and common use cases
+    Master the interactive SQL shell with syntax highlighting
+  </Card>
+  <Card
+    title="CLI Reference"
+    icon="book"
+    href="/reference/cli-options"
+  >
+    Complete reference for all command-line options and flags
   </Card>
 </CardGroup>
